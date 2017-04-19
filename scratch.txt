@@ -1,0 +1,136 @@
+# write unit tests
+# return output file w. reordered list of mines
+# use Euclidean distance
+
+# TODO
+# loop through each mine
+# determine coordinates within that mine's blast radius
+# compare coordinates against other mines
+# count number of mines within radius
+# O(n^2)
+# use memoization to reduce Time complexity?
+
+# number of mines in Original blast radius
+# loop through mines in Original blast radius
+# for each mine, find number of mines within blast radius (excluding previously explooded mines)
+
+
+# VARS
+# number of mines within current mine's blast radius
+# number of mines within each child mine's blast radius
+# previously exploded mines
+
+# code to validate text file is passed
+
+
+ Development Notes
+
+ There is no time limit to complete this exercise.
+
+ No user interface is required; the program will be run from the console and must be written in Ruby.
+
+ Assume that all files (input and output) will be found/created in the same directory as the program executes
+
+ As part of the exercise, you may choose to write unit tests appropriate for the task.
+
+ Please submit all components of your work back to me when complete (source files, test input/output etc)
+
+ === Exercise ===
+
+ There is a field of mines. 
+ Each mine is identified by a 2d-coordinate and a blast radius. 
+
+ ** When a mine explodes at time interval t, it explodes mines that lay within its blast radius at t + 1. **
+
+ Given a list of mines consisting of their X & Y coordinates and blast radius (ex 2, 2, 5), 
+ write a program that finds which mine(s) in the list trigger the greatest number of explosions. 
+
+ Use the Euclidean distance to determine whether a mine lays within the radius of another mine. Your program should produce an output file showing the mines, identified by their coordinates & blast radius, in descending order of total generated explosions.
+
+ A sample mines files is attached.
+
+ === End Exercise ===
+
+
+    # MINES_IN_BLAST_RADIUS = {
+    #   'm1' => ['m2']
+    #   'm2' => [ 'm1', 'm3', 'm4']
+    #   'm3' => ['m5', 'm6']
+    #   'm4' => ['m5', 'm7']
+    #   'm6' => ['m7']
+    #   'm7' => ['m6']
+    # }
+
+
+    # @extended_blast_radius = {
+    #   'm1' => ['m2']
+    # 
+
+
+      # ['m2'].each do |child_mine|
+      array_of_blast_radius_mines.each do |child_mine|
+        # child_mine => 'm2'
+
+        # MINES_IN_BLAST_RADIUS['m2'] => [ 'm1', 'm3', 'm4']
+        # [ 'm1', 'm3', 'm4'].each do |child_blast_radius_mine|
+        MINES_IN_BLAST_RADIUS[child_mine].each do |child_blast_radius_mine|
+          # child_blast_radius_mine => 'm1'
+
+          # @extended_blast_radius['m1'].include? 'm1' || 'm1' == 'm1'
+          next if @extended_blast_radius[mine].include? child_blast_radius_mine || mine == child_blast_radius_mine
+          # @extended_blast_radius['m1'] => [ 'm2']
+          @extended_blast_radius[mine] << child_blast_radius_mine
+        end
+      
+        # @extended_blast_radius['m1'] => [ 'm2', 'm3', 'm4']
+        @extended_blast_radius[mine].each do |child2_mine|
+          # child2_mine => 'm2'
+
+          # next if ['m2'].include? 'm2'
+          next if @extended_blast_radius[mine].include? child2_mine
+
+          # child2_mine => 'm3'
+          # MINES_IN_BLAST_RADIUS['m3'] => ['m5', 'm6']
+          # ['m5', 'm6'].each do |child2_blast_radius_mind|
+          MINES_IN_BLAST_RADIUS[child2_mine].each do |child2_blast_radius_mind|
+            # child2_blast_radius_mind => 'm5'
+            next if @extended_blast_radius[mine].include? child2_blast_radius_mind
+            @extended_blast_radius[mine] << child2_blast_radius_mind
+          end
+          @extended_blast_radius[mine] << child2_mine
+        end
+
+
+
+
+        
+
+        # next if @extended_blast_radius['m1']
+        
+        @extended_blast_radius[mine] << MINES_IN_BLAST_RADIUS[child_mine]
+
+        children_mines = MINES_IN_BLAST_RADIUS[child_mine]
+        # children_mines => [ 'm1', 'm3', 'm4']
+
+        children_mines.each do |c2_mine|
+          # c2_mine => 'm1'
+          next if @extended_blast_radius[c2_mine].include? child_mine || mine == child_mine
+        end
+        
+        @extended_blast_radius[mine] << child_mine
+      end
+      
+      @extended_blast_radius[k].each do |mine|
+
+
+        MINES_IN_BLAST_RADIUS[mine].each do |child_mine|
+          next if @extended_blast_radius[k].include? child_mine || k == child_mine
+          @extended_blast_radius[k] << child_mine
+        end
+
+        mines_in_blast_radius[mine].each do |child_mine|
+          extended_blast_radius[k] << mines_in_blast_radius[child_mine]
+          # when to escape
+        end
+      end
+    end
