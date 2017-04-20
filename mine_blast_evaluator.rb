@@ -1,11 +1,10 @@
-require 'byebug'
 class MineBlastEvaluator
 
   def initialize(file)
     # LOOP
     File.foreach(file) do |current_mine|
       current_mine = current_mine.gsub(/^\s+|\s+$/m, '')
-      validate_mine_format current_mine
+      validate_mine_format(current_mine)
       mines << current_mine
     end
   end
@@ -16,11 +15,11 @@ class MineBlastEvaluator
     sort_mines_and_print_to_file
   end
 
+  private
+
   def mines
     @mines ||= []
   end
-
-  private
 
   def blast_radius_by_mine
     @blast_radius_by_mine ||= {}
@@ -58,18 +57,16 @@ class MineBlastEvaluator
   end
 
   def get_mines_in_radius(current_mine)
-    if blast_radius_by_mine[current_mine].nil?
-      mines_in_radius = []
-      mines.map do |mine|
-        next if mine == current_mine
-        if mine_within_radius(current_mine, mine)
-          mines_in_radius << mine
-        end
-      end
-      mines_in_radius
-    else
-      blast_radius_by_mine[current_mine]
+    blast_radius_by_mine[current_mine] ||= calculate_mines_in_radius(current_mine)
+  end
+
+  def calculate_mines_in_radius(current_mine)
+    mines_in_radius = []
+    mines.each do |mine|
+      next if mine == current_mine
+      mines_in_radius << mine if mine_within_radius(current_mine, mine)
     end
+    mines_in_radius
   end
 
   def mine_within_radius(current_mine, mine)
