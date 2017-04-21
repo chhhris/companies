@@ -2,14 +2,13 @@ require 'rspec'
 
 RSpec.describe 'MineBlastEvaluatorSpec' do
 
-
   context 'Sorting' do
     let(:test_mines) { ['2 -1 3', '-1 1 2', '2 2 2', '4 1 2', '1 1 1'] }
     let(:correct_sort_order) { ['2 -1 3', '2 2 2', '-1 1 2', '1 1 1', '4 1 2'] }
 
     before do
       load_test_data(test_mines)
-      system('ruby lib/mine_blast_evaluator.rb seed_mines.txt')
+      system('ruby app/mine_blast_evaluator.rb seed_mines.txt')
     end
 
     it 'sorts mines in descending order by total number of explosions' do
@@ -36,7 +35,7 @@ RSpec.describe 'MineBlastEvaluatorSpec' do
     end
 
     after do
-      expect(system('ruby lib/mine_blast_evaluator.rb seed_mines.txt')).to eq(false)
+      expect(system('ruby app/mine_blast_evaluator.rb seed_mines.txt')).to eq(false)
       expect($?.exitstatus).to eq(1)
     end
   end
