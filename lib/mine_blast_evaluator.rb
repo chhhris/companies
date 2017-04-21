@@ -3,13 +3,13 @@ class MineBlastEvaluator
 
   # Create separate Module for FileParser
 
-  def initialize(example_mines)
+  def initialize(mine_file)
     # LOOP
     # byebug
     # if ENV['TEST']
-    #   example_mines.each{|mine| mines << mine}
+    #   mine_file.each{|mine| mines << mine}
     # else
-    File.foreach(example_mines) do |current_mine|
+    File.foreach(mine_file) do |current_mine|
       current_mine = current_mine.gsub(/^\s+|\s+$/m, '')
       validate_mine_format(current_mine)
       mines << current_mine
