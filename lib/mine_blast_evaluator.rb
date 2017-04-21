@@ -5,16 +5,11 @@ class MineBlastEvaluator
 
   def initialize(mine_file)
     # LOOP
-    # byebug
-    # if ENV['TEST']
-    #   mine_file.each{|mine| mines << mine}
-    # else
     File.foreach(mine_file) do |current_mine|
       current_mine = current_mine.gsub(/^\s+|\s+$/m, '')
       validate_mine_format(current_mine)
       mines << current_mine
     end
-    # end
   end
 
   def execute
@@ -41,7 +36,7 @@ class MineBlastEvaluator
   def load_blast_radius_mapping
     mines.each do |current_mine|
       blast_radius_by_mine[current_mine] = get_mines_in_radius(current_mine)
-      total_blasts_by_mine[current_mine] = []
+      total_blasts_by_mine[current_mine] = 0
     end
   end
 
@@ -51,17 +46,19 @@ class MineBlastEvaluator
 
   def calculate_extended_blast_radius
     blast_radius_by_mine.each do |mine, blast_radius|
-      total_blasts_by_mine[mine] = blast_radius
-
+      list_of_blasts = blast_radius
       # LOOP
+
+      # DRY this up
+      # TODO this isn't RECURSIVE so if big numbers of mines are thrown at it, might it not cycle all the way through?!
       blast_radius.each do |child_mine|
         next if (child_mine == mine)
         extended_blast_radius = get_mines_in_radius(child_mine)
-        total_blasts_by_mine[mine] = total_blasts_by_mine[mine] | extended_blast_radius
 
         extended_blast_radius.each do |child_mine2|
-          extended_blast_radius2 = get_mines_in_radius(child_mine2)
-          total_blasts_by_mine[mine] = total_blasts_by_mine[mine] | extended_blast_radius
+          childs_extended_blast_radius = get_mines_in_radius(child_mine2)
+          list_of_blasts = list_of_blasts | extended_blast_radius | childs_extended_blast_radius
+          total_blasts_by_mine[mine] = list_of_blasts.length
         end
       end
 
@@ -86,25 +83,7 @@ class MineBlastEvaluator
   end
 
   def sort_mines_and_print_to_file
-    # TODO if changed to count will simplify
     # TODO print to file earlier to save a loop?!?!?
-
-    # file = File.open('sorted_mines.txt', 'w')
-
-    # total_blasts_by_mine.sort_by{ |k, v| v.length}.reverse.each do |mine, blast_radius|
-    #   file.puts "#{mine} (#{blast_radius.length})\n"
-    # end
-
-    # file.close
-
-    # nvm -- don't return separate TEST data types
-    # if ENV['TEST']
-      # byebug
-      # foobar = sorted_mines.map(&:first) do |mine, blast_radius|
-      #   "#{mine} (#{blast_radius.length})"
-      # end
-      # return sorted_mines.map(&:first)
-    # end
 
     File.open('sorted_mines.txt', 'w') do |file|
       sorted_mines.each do |mine, blast_radius|
@@ -114,7 +93,7 @@ class MineBlastEvaluator
   end
 
   def sorted_mines
-    @total_blasts_by_mine.sort_by{ |k, v| v.length}.reverse
+    total_blasts_by_mine.sort_by{ |k, v| v }.reverse
   end
 
   def validate_mine_format(current_mine)
@@ -125,7 +104,5 @@ class MineBlastEvaluator
 
 end
 
-# unless ENV['TEST']
 mine_blast_evaluator = MineBlastEvaluator.new ARGV[0]
 mine_blast_evaluator.execute
-# end
