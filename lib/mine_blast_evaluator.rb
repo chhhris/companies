@@ -36,7 +36,7 @@ class MineBlastEvaluator
   def load_blast_radius_mapping
     mines.each do |current_mine|
       blast_radius_by_mine[current_mine] = get_mines_in_radius(current_mine)
-      total_blasts_by_mine[current_mine] = 0
+      total_blasts_by_mine[current_mine] = []
     end
   end
 
@@ -46,22 +46,37 @@ class MineBlastEvaluator
 
   def calculate_extended_blast_radius
     blast_radius_by_mine.each do |mine, blast_radius|
-      list_of_blasts = blast_radius
+      # list_of_blasts = blast_radius
+      add_child_blasts(mine, blast_radius)
+
       # LOOP
 
       # DRY this up
       # TODO this isn't RECURSIVE so if big numbers of mines are thrown at it, might it not cycle all the way through?!
-      blast_radius.each do |child_mine|
-        next if (child_mine == mine)
-        extended_blast_radius = get_mines_in_radius(child_mine)
 
-        extended_blast_radius.each do |child_mine2|
-          childs_extended_blast_radius = get_mines_in_radius(child_mine2)
-          list_of_blasts = list_of_blasts | extended_blast_radius | childs_extended_blast_radius
-          total_blasts_by_mine[mine] = list_of_blasts.length
-        end
-      end
 
+    end
+  end
+
+  def add_child_blasts(mine, blast_radius)
+    return if (blast_radius - total_blasts_by_mine[mine]).empty?
+    blast_radius.each do |child_mine|
+      # NEED THIS?
+      next if (child_mine == mine)
+
+      extended_blast_radius = get_mines_in_radius(child_mine)
+      total_blasts_by_mine[mine] = (blast_radius | extended_blast_radius)
+
+      add_child_blasts(child_mine, extended_blast_radius)
+
+      # extended_blast_radius.each do |child_mine2|
+      #   childs_extended_blast_radius = get_mines_in_radius(child_mine2)
+      #   total_blasts_by_mine[mine] = (blast_radius | extended_blast_radius | childs_extended_blast_radius)
+
+      #   # next if (childs_extended_blast_radius - total_blasts_by_mine[mine]).empty?
+      #   # next if (child_mine2 == mine) || (total_blasts_by_mine[mine].include? child_mine2)
+      #   add_child_blasts(child_mine2, childs_extended_blast_radius)
+      # end
     end
   end
 
@@ -93,7 +108,7 @@ class MineBlastEvaluator
   end
 
   def sorted_mines
-    total_blasts_by_mine.sort_by{ |k, v| v }.reverse
+    total_blasts_by_mine.sort_by{ |k, v| v.length }.reverse
   end
 
   def validate_mine_format(current_mine)
