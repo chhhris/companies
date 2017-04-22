@@ -1,7 +1,7 @@
-require_relative '../lib/file_parser'
+require_relative '../lib/mines_file_parser'
 
 class MineBlastEvaluator
-  include FileParser
+  include MinesFileParser
 
   def initialize(mine_file)
     parse_file_and_load_mines(mine_file)

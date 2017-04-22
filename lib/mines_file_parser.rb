@@ -1,4 +1,4 @@
-module FileParser
+module MinesFileParser
 
   def parse_file_and_load_mines(mine_file)
     File.foreach(mine_file) do |current_mine|
