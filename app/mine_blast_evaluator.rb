@@ -54,12 +54,8 @@ class MineBlastEvaluator
       child_mine_blast_radius = mines_in_radius(child_mine)
       diff = child_mine_blast_radius - total_blasts_by_mine[mine]
       next if diff.empty?
-      total_blasts_by_mine[mine] = total_blasts_by_mine[mine] | child_mine_blast_radius
-      add_child_blasts_to_mine(mine, child_mine_blast_radius)
-
-
-
-
+      total_blasts_by_mine[mine] += diff
+      add_child_blasts_to_mine(mine, diff)
 
       # return if blast_radius.empty? || (blast_radius - total_blasts_by_mine[mine]).empty?
     # return if
