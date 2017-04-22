@@ -10,9 +10,7 @@ class MineBlastEvaluator
   end
 
   def execute
-    generate_blast_radius_mapping
-    calculate_total_blast_radius
-    # byebug
+    calculate_total_blast_radii
     sort_mines_and_print_to_file
   end
 
@@ -26,71 +24,39 @@ class MineBlastEvaluator
     @blast_radius_by_mine ||= {}
   end
 
-  def total_blasts_by_mine
-    @total_blasts_by_mine ||= {}
+  def total_blasts_tracker
+    @total_blasts_tracker ||= {}
   end
 
-  def generate_blast_radius_mapping
-    # LOOP
-    mines.each do |current_mine|
-      blast_radius_by_mine[current_mine] = mines_in_radius(current_mine)
-      total_blasts_by_mine[current_mine] = []
-    end
+  def fetch_mines_in_radius(current_mine)
+    blast_radius_by_mine[current_mine] ||= calculate_radius(current_mine)
   end
 
-  def mines_in_radius(current_mine)
-    blast_radius_by_mine[current_mine] ||= calculate_mines_in_radius(current_mine)
-  end
-
-  def calculate_total_blast_radius
-    blast_radius_by_mine.each do |mine, blast_radius|
-      total_blasts_by_mine[mine] = blast_radius
-      add_child_blasts_to_mine(mine, blast_radius)
-    end
-  end
-
-  def add_child_blasts_to_mine(mine, blast_radius)
-    blast_radius.each do |child_mine|
-      child_mine_blast_radius = mines_in_radius(child_mine)
-      diff = child_mine_blast_radius - total_blasts_by_mine[mine]
-      next if diff.empty?
-      total_blasts_by_mine[mine] += diff
-      add_child_blasts_to_mine(mine, diff)
-
-      # return if blast_radius.empty? || (blast_radius - total_blasts_by_mine[mine]).empty?
-    # return if
-
-    # LOOP
-      # byebug
-      # mines_in_extended_blast_radius = mines_in_radius(child_mine) - blast_radius - [mine]
-
-      # total_blasts_by_mine[mine] = total_blasts_by_mine[mine] | mines_in_extended_blast_radius
-      # add_child_blasts_to_mine(mine, mines_in_extended_blast_radius)
-
-
-      # total_blasts_by_mine[mine] = total_blasts_by_mine[mine] | child_blast_radius
-      # unless (child_blast_radius - blast_radius).empty?
-      #   add_child_blasts_to_mine(mine, child_blast_radius)
-      # end
-
-
-      # extended_blast_radius = mines_in_radius(child_mine)
-
-
-      # total_blasts_by_mine[mine] = (total_blasts_by_mine[mine] | blast_radius | extended_blast_radius)
-
-      # add_child_blasts_to_mine(mine, extended_blast_radius)
-    end
-  end
-
-  def calculate_mines_in_radius(current_mine)
-    mines_in_radius = []
-    # LOOP
-    mines.each do |mine|
+  def calculate_radius(current_mine)
+    mines.map do |mine|
       next if mine == current_mine
-      mines_in_radius << mine if mine_is_within_blast_radius(current_mine, mine)
+      mine if mine_is_within_blast_radius(current_mine, mine)
+    end.compact
+  end
+
+  def calculate_total_blast_radii
+    mines.each do |current_mine|
+      byebug if current_mine.nil?
+      blast_radius = fetch_mines_in_radius(current_mine)
+      total_blasts_tracker[current_mine] = blast_radius
+      add_blasts_from_radius(current_mine, blast_radius)
     end
-    mines_in_radius
+  end
+
+  def add_blasts_from_radius(current_mine, blast_radius)
+    blast_radius.each do |child_mine|
+      byebug if child_mine.nil?
+      blast_radius_of_child_mine = fetch_mines_in_radius(child_mine)
+      descendant_mines = blast_radius_of_child_mine - total_blasts_tracker[current_mine]
+      next if descendant_mines.empty?
+      total_blasts_tracker[current_mine] += descendant_mines
+      add_blasts_from_radius(current_mine, descendant_mines)
+    end
   end
 
   def mine_is_within_blast_radius(current_mine, mine)
@@ -101,9 +67,8 @@ class MineBlastEvaluator
   end
 
   def sort_mines_and_print_to_file
-    # LOOP
     file = File.open('sorted_mines.txt', 'w')
-    total_blasts_by_mine.sort_by{ |mine, radius| radius.length }.reverse_each do |mine|
+    total_blasts_tracker.sort_by{ |mine, radius| radius.length }.reverse_each do |mine|
       file.write "#{mine.first}\n"
     end
     file.close
