@@ -1,4 +1,3 @@
-require 'byebug'
 require_relative '../lib/file_parser'
 
 class MineBlastEvaluator
